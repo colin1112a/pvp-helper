@@ -72,7 +72,7 @@ jobs:
           ## PVP Helper - Fabric 1.20.1
 
           ### Installation
-          1. Download `playerhighlight-0.0.1.jar`
+          1. Download the JAR from this release
           2. Place it in your `.minecraft/mods` folder
           3. Launch Minecraft with Fabric installed
 
