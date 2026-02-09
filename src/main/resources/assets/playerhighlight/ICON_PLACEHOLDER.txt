@@ -1,0 +1,11 @@
+这个目录需要一个名为 "icon.png" 的图标文件（128x128 像素）
+
+你可以：
+1. 创建一个 128x128 的 PNG 图标
+2. 或者删除 fabric.mod.json 中的 "icon" 行
+
+This directory needs an "icon.png" file (128x128 pixels)
+
+You can either:
+1. Create a 128x128 PNG icon
+2. Or remove the "icon" line from fabric.mod.json

@@ -1,0 +1,44 @@
+# Gradle
+.gradle/
+build/
+out/
+classes/
+
+# Eclipse
+*.launch
+.settings/
+.metadata
+.classpath
+.project
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# VS Code
+.vscode/
+
+# Fabric & Forge
+run/
+server_worlds/
+
+# JDK
+Java17/
+.jdk/
+
+# Local Gradle scratch
+.gradle-user-home/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Installers and archives
+*.exe
+*.zip
+*.tar.gz
+*.rar
