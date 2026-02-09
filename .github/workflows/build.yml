@@ -59,17 +59,17 @@ jobs:
         name: playerhighlight-fabric-1.20.1
         path: artifacts
 
-    - name: Get current date
-      id: date
-      run: echo "date=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
+    - name: Get version from gradle.properties
+      id: version
+      run: echo "version=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2)" >> $GITHUB_OUTPUT
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: build-${{ steps.date.outputs.date }}
-        name: Build ${{ steps.date.outputs.date }}
+        tag_name: v${{ steps.version.outputs.version }}
+        name: PVP Helper v${{ steps.version.outputs.version }}
         body: |
-          ## PVP Helper - Fabric 1.20.1
+          ## PVP Helper v${{ steps.version.outputs.version }} - Fabric 1.20.1
 
           ### Installation
           1. Download the JAR from this release
