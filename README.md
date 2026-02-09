@@ -44,7 +44,7 @@ A Minecraft Fabric 1.20.1 client-side mod that provides PVP assistance features 
 - [Mod Menu](https://modrinth.com/mod/modmenu) (optional, for GUI settings)
 
 **Steps:**
-1. Download `playerhighlight-1.0.0.jar` from [Releases](https://github.com/colin1112a/pvp-helper/releases)
+1. Download `playerhighlight-0.0.1.jar` from [Releases](https://github.com/colin1112a/pvp-helper/releases)
 2. Place it in your `.minecraft/mods` folder
 3. Launch Minecraft with Fabric
 
@@ -77,7 +77,7 @@ Learned calibration data is saved to `config/playerhighlight-calibration.json`.
 ./gradlew build
 ```
 
-Output: `build/libs/playerhighlight-1.0.0.jar`
+Output: `build/libs/playerhighlight-0.0.1.jar`
 
 Requires JDK 17.
 
@@ -125,7 +125,7 @@ Minecraft Fabric 1.20.1 客户端 Mod，提供 PVP 辅助功能，包括玩家�
 - [Mod Menu](https://modrinth.com/mod/modmenu)（可选，用于图形化设置）
 
 **步骤：**
-1. 从 [Releases](https://github.com/colin1112a/pvp-helper/releases) 下载 `playerhighlight-1.0.0.jar`
+1. 从 [Releases](https://github.com/colin1112a/pvp-helper/releases) 下载 `playerhighlight-0.0.1.jar`
 2. 放入 `.minecraft/mods` 文件夹
 3. 使用 Fabric 启动 Minecraft
 
@@ -158,7 +158,7 @@ Minecraft Fabric 1.20.1 客户端 Mod，提供 PVP 辅助功能，包括玩家�
 ./gradlew build
 ```
 
-输出：`build/libs/playerhighlight-1.0.0.jar`
+输出：`build/libs/playerhighlight-0.0.1.jar`
 
 需要 JDK 17。
 
