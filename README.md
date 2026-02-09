@@ -1,5 +1,7 @@
 # PVP Helper Mod
 
+**注意：本仓库由codex与claude共同构建完成。代码质量不做保障。本地已验证可用**
+
 [English](#english) | [中文](#中文)
 
 ---
