@@ -1,22 +1,25 @@
-plugins {
-    id "java"
-    id "com.gtnewhorizons.retrofuturagradle" version "1.4.0"
-}
-
-group = "com.example"
-version = "0.0.1"
-archivesBaseName = "playerhighlight-forge"
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(8))
-        vendor.set(org.gradle.jvm.toolchain.JvmVendorSpec.AZUL)
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            name = "forge"
+            url = "https://maven.minecraftforge.net/"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.1-SNAPSHOT'
     }
 }
+apply plugin: 'net.minecraftforge.gradle.forge'
+
+version = "0.0.1"
+group = "com.example"
+archivesBaseName = "playerhighlight-forge"
 
 minecraft {
-    mcVersion = "1.8.9"
-    username = "Developer"
+    version = "1.8.9-11.15.1.2318-1.8.9"
+    runDir = "run"
+    mappings = "stable_22"
 }
 
 repositories {
@@ -24,22 +27,19 @@ repositories {
 }
 
 dependencies {
-    implementation "com.google.code.gson:gson:2.8.9"
+    compile 'com.google.code.gson:gson:2.8.9'
 }
 
 processResources {
     inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
 
-    filesMatching("mcmod.info") {
-        expand "version": project.version
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version':project.version, 'mcversion':project.minecraft.version
     }
-}
 
-jar {
-    manifest {
-        attributes(
-            "FMLCorePlugin": "",
-            "FMLCorePluginContainsFMLMod": "true"
-        )
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
     }
 }
