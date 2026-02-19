@@ -1,0 +1,10 @@
+pluginManagement {
+    repositories {
+        maven { url = "https://maven.minecraftforge.net/" }
+        maven { url = "https://jitpack.io" }
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+rootProject.name = "playerhighlight-forge"

@@ -1,0 +1,15 @@
+[
+  {
+    "modid": "playerhighlight",
+    "name": "Player Highlight",
+    "description": "PVP helper mod with player ESP, projectile tracking, and bow preview.",
+    "version": "${version}",
+    "mcversion": "1.8.9",
+    "url": "",
+    "authorList": ["Example"],
+    "credits": "",
+    "logoFile": "",
+    "screenshots": [],
+    "dependencies": []
+  }
+]

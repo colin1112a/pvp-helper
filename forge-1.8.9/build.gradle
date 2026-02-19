@@ -1,0 +1,57 @@
+buildscript {
+    repositories {
+        maven { url = "https://maven.minecraftforge.net/" }
+        maven { url = "https://repo.spongepowered.org/maven/" }
+        maven { url = "https://jitpack.io" }
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.github.AntiquityMC:RetroFuturaGradle:1.4.1"
+    }
+}
+
+plugins {
+    id "java"
+}
+
+apply plugin: "com.gtnewhorizons.retrofuturagradle"
+
+group = "com.example"
+version = "0.0.1"
+archivesBaseName = "playerhighlight-forge"
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
+minecraft {
+    mcVersion = "1.8.9"
+    username = "Developer"
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation "com.google.code.gson:gson:2.8.9"
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("mcmod.info") {
+        expand "version": project.version
+    }
+}
+
+jar {
+    manifest {
+        attributes(
+            "FMLCorePlugin": "",
+            "FMLCorePluginContainsFMLMod": "true"
+        )
+    }
+}
