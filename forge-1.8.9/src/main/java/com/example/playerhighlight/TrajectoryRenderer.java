@@ -31,9 +31,9 @@ public class TrajectoryRenderer {
         }
 
         RenderManager renderManager = mc.getRenderManager();
-        double renderPosX = renderManager.renderPosX;
-        double renderPosY = renderManager.renderPosY;
-        double renderPosZ = renderManager.renderPosZ;
+        double renderPosX = renderManager.viewerPosX;
+        double renderPosY = renderManager.viewerPosY;
+        double renderPosZ = renderManager.viewerPosZ;
 
         GL11.glPushMatrix();
         GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
