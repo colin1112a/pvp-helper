@@ -27,7 +27,8 @@ public class ProjectileCollisionMixin {
         boolean isTrackable = self instanceof ArrowEntity
                 || self instanceof SpectralArrowEntity
                 || self instanceof TridentEntity
-                || self instanceof SmallFireballEntity;
+                || self instanceof SmallFireballEntity
+                || self instanceof FireballEntity;
         if (!isTrackable) {
             return;
         }

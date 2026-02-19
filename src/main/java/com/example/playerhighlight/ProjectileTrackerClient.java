@@ -476,7 +476,8 @@ public class ProjectileTrackerClient {
         return entity instanceof ArrowEntity
                 || entity instanceof SpectralArrowEntity
                 || entity instanceof TridentEntity
-                || entity instanceof SmallFireballEntity;  // 烈焰弹
+                || entity instanceof SmallFireballEntity   // 烈焰弹
+                || entity instanceof FireballEntity;       // 恶魂火球
     }
 
     /**
@@ -487,6 +488,7 @@ public class ProjectileTrackerClient {
         if (projectile instanceof SpectralArrowEntity) return "Spectral Arrow";
         if (projectile instanceof TridentEntity) return "Trident";
         if (projectile instanceof SmallFireballEntity) return "Blaze Fireball";
+        if (projectile instanceof FireballEntity) return "Ghast Fireball";
         return "Unknown Projectile";
     }
 
@@ -578,6 +580,8 @@ public class ProjectileTrackerClient {
      */
     private static String detectProjectileType(Entity projectile) {
         if (projectile instanceof SmallFireballEntity) {
+            return "FIREBALL";
+        } else if (projectile instanceof FireballEntity) {
             return "FIREBALL";
         } else if (projectile instanceof TridentEntity) {
             return "TRIDENT";

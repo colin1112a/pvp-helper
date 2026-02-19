@@ -29,7 +29,8 @@ public class ProjectileEntityMixin {
         boolean isProjectile = self instanceof ArrowEntity
                 || self instanceof SpectralArrowEntity
                 || self instanceof TridentEntity
-                || self instanceof SmallFireballEntity;
+                || self instanceof SmallFireballEntity
+                || self instanceof FireballEntity;
 
         // 如果是被追踪的弹道，启用发光
         if (isProjectile && ProjectileTrackerClient.isProjectileTracked(self.getUuid())) {
@@ -48,7 +49,8 @@ public class ProjectileEntityMixin {
         boolean isProjectile = self instanceof ArrowEntity
                 || self instanceof SpectralArrowEntity
                 || self instanceof TridentEntity
-                || self instanceof SmallFireballEntity;
+                || self instanceof SmallFireballEntity
+                || self instanceof FireballEntity;
 
         // 如果是被追踪的弹道，设置白色轮廓
         if (isProjectile && ProjectileTrackerClient.isProjectileTracked(self.getUuid())) {
