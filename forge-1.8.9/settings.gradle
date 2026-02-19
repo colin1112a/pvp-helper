@@ -1,9 +1,12 @@
 pluginManagement {
     repositories {
-        maven { url = "https://maven.minecraftforge.net/" }
-        maven { url = "https://jitpack.io" }
+        maven {
+            name = "GTNH Maven"
+            url = uri("https://nexus.gtnewhorizons.com/repository/public/")
+        }
         gradlePluginPortal()
         mavenCentral()
+        mavenLocal()
     }
 }
 

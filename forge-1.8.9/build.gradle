@@ -1,20 +1,7 @@
-buildscript {
-    repositories {
-        maven { url = "https://maven.minecraftforge.net/" }
-        maven { url = "https://repo.spongepowered.org/maven/" }
-        maven { url = "https://jitpack.io" }
-        mavenCentral()
-    }
-    dependencies {
-        classpath "com.github.AntiquityMC:RetroFuturaGradle:1.4.1"
-    }
-}
-
 plugins {
     id "java"
+    id "com.gtnewhorizons.retrofuturagradle" version "1.4.0"
 }
-
-apply plugin: "com.gtnewhorizons.retrofuturagradle"
 
 group = "com.example"
 version = "0.0.1"
@@ -22,7 +9,8 @@ archivesBaseName = "playerhighlight-forge"
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(8)
+        languageVersion.set(JavaLanguageVersion.of(8))
+        vendor.set(org.gradle.jvm.toolchain.JvmVendorSpec.AZUL)
     }
 }
 
