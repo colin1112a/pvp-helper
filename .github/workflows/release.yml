@@ -1,0 +1,104 @@
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-fabric:
+    name: Build Fabric 1.20.1
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: chmod +x gradlew && ./gradlew build --no-daemon --parallel --build-cache
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: playerhighlight-fabric-1.20.1
+          path: build/libs/*.jar
+          if-no-files-found: error
+
+  build-forge:
+    name: Build Forge 1.8.9
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '8'
+
+      - name: Build
+        working-directory: forge-1.8.9
+        run: chmod +x gradlew && ./gradlew build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: playerhighlight-forge-1.8.9
+          path: forge-1.8.9/build/libs/*.jar
+          if-no-files-found: error
+
+  release:
+    name: Create Release
+    needs: [build-fabric, build-forge]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Fabric artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: playerhighlight-fabric-1.20.1
+          path: artifacts/fabric
+
+      - name: Download Forge artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: playerhighlight-forge-1.8.9
+          path: artifacts/forge
+
+      - name: Get version
+        id: version
+        run: echo "version=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2)" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: PVP Helper v${{ steps.version.outputs.version }}
+          body: |
+            ## PVP Helper v${{ steps.version.outputs.version }}
+
+            ### Fabric 1.20.1
+            1. 下载 `playerhighlight-*-fabric.jar`
+            2. 放入 `.minecraft/mods` 目录
+            3. 需要 Fabric Loader + Fabric API
+
+            ### Forge 1.8.9
+            1. 下载 `playerhighlight-*-forge.jar`
+            2. 放入 `.minecraft/mods` 目录
+            3. 需要 Minecraft Forge 1.8.9
+          files: |
+            artifacts/fabric/*.jar
+            artifacts/forge/*.jar
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
