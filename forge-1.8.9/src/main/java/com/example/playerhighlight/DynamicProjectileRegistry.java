@@ -137,8 +137,10 @@ public class DynamicProjectileRegistry {
     }
 
     public void markDirty() {
+        if (!dirty) {
+            dirtySinceMs = System.currentTimeMillis();
+        }
         dirty = true;
-        dirtySinceMs = System.currentTimeMillis();
     }
 
     public void flushIfDue() {

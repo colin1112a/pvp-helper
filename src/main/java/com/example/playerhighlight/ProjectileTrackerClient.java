@@ -58,16 +58,18 @@ public class ProjectileTrackerClient {
     // 射手推断：记录每个玩家上次看到的位置和视线方向
     private static final Map<UUID, PlayerSnapshot> lastPlayerSnapshots = new ConcurrentHashMap<>();
 
-    // 记录玩家快照（用于推断射手）
+    // 记录玩家快照（用于推断射手）— position 存储眼睛位置
     private static class PlayerSnapshot {
         final String name;
-        final Vec3d position;
+        final int entityId;
+        final Vec3d position;  // 眼睛位置
         final Vec3d lookDirection;
         final long timestamp;
 
-        PlayerSnapshot(String name, Vec3d position, Vec3d lookDirection) {
+        PlayerSnapshot(String name, int entityId, Vec3d eyePosition, Vec3d lookDirection) {
             this.name = name;
-            this.position = position;
+            this.entityId = entityId;
+            this.position = eyePosition;
             this.lookDirection = lookDirection;
             this.timestamp = System.currentTimeMillis();
         }
@@ -162,9 +164,11 @@ public class ProjectileTrackerClient {
 
         for (PlayerEntity player : client.world.getPlayers()) {
             Vec3d lookDir = player.getRotationVec(1.0f);
+            Vec3d eyePos = player.getPos().add(0, player.getStandingEyeHeight(), 0);
             PlayerSnapshot snapshot = new PlayerSnapshot(
                     player.getName().getString(),
-                    player.getPos(),
+                    player.getId(),
+                    eyePos,
                     lookDir
             );
             lastPlayerSnapshots.put(player.getUuid(), snapshot);
@@ -339,7 +343,49 @@ public class ProjectileTrackerClient {
         if (owner instanceof PlayerEntity player) {
             return player;
         }
-        return null;
+
+        // 离线模式下 getOwner() 经常返回 null，回退到位置推断
+        return inferOwnerPlayerFromPosition(projectile);
+    }
+
+    /**
+     * 当 getOwner() 返回 null 时，通过位置和方向推断射手玩家实体。
+     * 用于校准过滤（需要知道射手是玩家而非怪物）。
+     */
+    private static PlayerEntity inferOwnerPlayerFromPosition(Entity projectile) {
+        MinecraftClient client = MinecraftClient.getInstance();
+        if (client.world == null) {
+            return null;
+        }
+
+        Vec3d projectilePos = projectile.getPos();
+        Vec3d rawVelocity = projectile.getVelocity();
+        if (rawVelocity.lengthSquared() < 1.0e-9) {
+            return null;
+        }
+        Vec3d projectileDir = rawVelocity.normalize();
+
+        PlayerEntity bestPlayer = null;
+        double bestScore = Double.MAX_VALUE;
+
+        for (PlayerEntity player : client.world.getPlayers()) {
+            Vec3d eyePos = player.getPos().add(0, player.getStandingEyeHeight(), 0);
+            double distance = eyePos.distanceTo(projectilePos);
+            if (distance > 5.0) continue;
+
+            Vec3d lookDir = player.getRotationVec(1.0f);
+            double dot = lookDir.dotProduct(projectileDir);
+            double angle = Math.acos(Math.max(-1.0, Math.min(1.0, dot)));
+            if (angle > Math.toRadians(30.0)) continue;
+
+            double score = distance * 0.5 + angle * 3.0;
+            if (score < bestScore) {
+                bestScore = score;
+                bestPlayer = player;
+            }
+        }
+
+        return bestScore <= 3.0 ? bestPlayer : null;
     }
 
     private static boolean isFullyDrawnBowArrow(Entity projectile) {
@@ -495,9 +541,10 @@ public class ProjectileTrackerClient {
     /**
      * 获取射手名字（支持离线模式服务器）
      *
-     * 在弹道刚创建时调用此方法，确保获取到最准确的射手信息
-     * 注意：Minecraft 1.20.1中ProjectileEntity没有getOwnerUuid()方法，
-     * 只能通过getOwner()获取实体，若为null则使用位置推断
+     * 在弹道刚创建时调用此方法，确保获取到最准确的射手信息。
+     *
+     * 离线（非正版）服务器中 getOwner() 经常返回 null，因为服务器分配的
+     * 玩家 UUID 与弹射物记录的 owner UUID 不一致。此时回退到基于位置+方向的推断。
      */
     private static String getShooterName(Entity projectile) {
         Entity owner = null;
@@ -511,12 +558,12 @@ public class ProjectileTrackerClient {
             owner = fireball.getOwner();
         }
 
-        // 如果owner存在，直接获取名称
-        if (owner != null) {
+        // 如果 owner 存在且是玩家，直接获取名称
+        if (owner instanceof PlayerEntity) {
             return owner.getName().getString();
         }
 
-        // owner为null时（离线模式常见），通过位置和方向推断射手
+        // owner 为 null 或非玩家时（离线模式常见），通过位置和方向推断射手
         return inferShooterFromPosition(projectile);
     }
 
@@ -531,35 +578,78 @@ public class ProjectileTrackerClient {
         } else if (projectile instanceof AbstractFireballEntity fireball) {
             owner = fireball.getOwner();
         }
-        return owner != null && owner.getUuid().equals(client.player.getUuid());
+
+        if (owner == null) {
+            // 离线模式下 getOwner() 经常返回 null，回退到位置+方向推断
+            return inferIsLocalPlayerShot(client, projectile);
+        }
+
+        // 优先 UUID 比较；离线模式下 UUID 可能不一致，回退到 Entity ID 比较
+        if (owner.getUuid().equals(client.player.getUuid())) {
+            return true;
+        }
+        if (owner.getId() == client.player.getId()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * 当 getOwner() 返回 null 时，通过位置和方向推断弹射物是否由本地玩家射出。
+     * 条件：弹射物在本地玩家 2 格内 且 方向与玩家视线夹角 < 15°
+     */
+    private static boolean inferIsLocalPlayerShot(MinecraftClient client, Entity projectile) {
+        PlayerEntity player = client.player;
+        double distance = player.getPos().distanceTo(projectile.getPos());
+        if (distance > 2.0) {
+            return false;
+        }
+
+        Vec3d playerLook = player.getRotationVec(1.0f);
+        Vec3d projVel = projectile.getVelocity();
+        if (projVel.lengthSquared() < 1.0e-9) {
+            return false;
+        }
+        Vec3d projDir = projVel.normalize();
+        double dot = playerLook.dotProduct(projDir);
+        double angle = Math.acos(Math.max(-1.0, Math.min(1.0, dot)));
+        // 15° 以内视为本地玩家射出
+        return angle < Math.toRadians(15.0);
     }
 
     /**
      * 通过弹道位置和速度推断射手
-     * 适用于离线模式服务器getOwner()返回null的情况
+     * 适用于离线模式服务器 getOwner() 返回 null 的情况
      */
     private static String inferShooterFromPosition(Entity projectile) {
         Vec3d projectilePos = projectile.getPos();
-        Vec3d projectileVelocity = projectile.getVelocity().normalize();
+        Vec3d rawVelocity = projectile.getVelocity();
+        if (rawVelocity.lengthSquared() < 1.0e-9) {
+            return "Unknown";
+        }
+        Vec3d projectileVelocity = rawVelocity.normalize();
 
         String bestMatch = "Unknown";
         double bestScore = Double.MAX_VALUE;
 
         // 遍历所有玩家快照，找到最可能的射手
         for (PlayerSnapshot snapshot : lastPlayerSnapshots.values()) {
-            // 计算玩家到弹道的距离
+            // snapshot.position 已经是眼睛位置
             double distance = snapshot.position.distanceTo(projectilePos);
 
-            // 弹道必须在玩家附近（10格内）
-            if (distance > 10.0) continue;
+            // 弹道必须在玩家附近（5格内，缩小范围提高精度）
+            if (distance > 5.0) continue;
 
             // 计算玩家视线方向和弹道方向的夹角
             double dotProduct = snapshot.lookDirection.dotProduct(projectileVelocity);
             double angle = Math.acos(Math.max(-1.0, Math.min(1.0, dotProduct)));
 
+            // 角度超过 30° 直接排除
+            if (angle > Math.toRadians(30.0)) continue;
+
             // 计算综合分数（距离 + 角度偏差）
-            // 距离权重0.5，角度权重1.0
-            double score = distance * 0.5 + angle * 2.0;
+            double score = distance * 0.5 + angle * 3.0;
 
             if (score < bestScore) {
                 bestScore = score;
@@ -567,8 +657,8 @@ public class ProjectileTrackerClient {
             }
         }
 
-        // 如果最佳匹配分数太差（>5.0），返回Unknown
-        if (bestScore > 5.0) {
+        // 如果最佳匹配分数太差，返回 Unknown
+        if (bestScore > 3.0) {
             return "Unknown";
         }
 
