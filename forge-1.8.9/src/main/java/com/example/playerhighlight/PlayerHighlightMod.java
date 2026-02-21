@@ -8,7 +8,7 @@ import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-@Mod(modid = "playerhighlight", version = "0.0.1", name = "Player Highlight", clientSideOnly = true)
+@Mod(modid = "playerhighlight", version = "0.1.0", name = "Player Highlight", clientSideOnly = true)
 public class PlayerHighlightMod {
 
     public static final Logger LOGGER = LogManager.getLogger("playerhighlight");
