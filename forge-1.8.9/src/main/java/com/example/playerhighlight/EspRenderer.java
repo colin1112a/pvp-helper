@@ -52,9 +52,6 @@ public class EspRenderer {
                 if (player == mc.thePlayer && mc.gameSettings.thirdPersonView == 0) {
                     continue;
                 }
-                if (!RenderHelper.shouldRenderOutline(player)) {
-                    continue;
-                }
 
                 int color = RenderHelper.getPlayerOutlineColor(player);
                 float r = ((color >> 16) & 0xFF) / 255.0F;
