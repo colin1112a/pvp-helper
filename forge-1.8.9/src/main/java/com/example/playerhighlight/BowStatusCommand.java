@@ -6,6 +6,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -46,7 +47,7 @@ public class BowStatusCommand extends CommandBase {
         Map<String, DynamicProjectileRegistry.ProjectileTypeData> types = registry.getRegisteredTypesSnapshot();
 
         if (types.isEmpty()) {
-            sender.addChatMessage(new ChatComponentText("[BowStatus] No projectile types registered yet."));
+            sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocal("playerhighlight.bowstatus.no_types")));
             return;
         }
 
@@ -60,19 +61,17 @@ public class BowStatusCommand extends CommandBase {
             }
         });
 
-        sender.addChatMessage(new ChatComponentText("[BowStatus] Registered types: " + entries.size()));
+        sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted("playerhighlight.bowstatus.registered_types", String.valueOf(entries.size()))));
         for (Map.Entry<String, DynamicProjectileRegistry.ProjectileTypeData> entry : entries) {
             String typeId = entry.getKey();
             DynamicProjectileRegistry.ProjectileTypeData data = entry.getValue();
 
-            String displayName = BowEnchantmentDetector.getDisplayName(typeId);
-            String line = String.format(
-                    "%s | samples=%d avgRMSE=%.2f | G=%.4f D=%.4f",
-                    displayName,
-                    data.getSampleCount(),
-                    data.getAvgError(),
-                    data.getGravity(),
-                    data.getDrag()
+            String line = StatCollector.translateToLocalFormatted("playerhighlight.bowstatus.type_line",
+                    BowEnchantmentDetector.getDisplayName(typeId),
+                    String.valueOf(data.getSampleCount()),
+                    String.format("%.2f", data.getAvgError()),
+                    String.format("%.4f", data.getGravity()),
+                    String.format("%.4f", data.getDrag())
             );
             sender.addChatMessage(new ChatComponentText(line));
         }
@@ -80,7 +79,7 @@ public class BowStatusCommand extends CommandBase {
 
     private void resetType(ICommandSender sender, String type) {
         if (type == null || type.trim().isEmpty()) {
-            sender.addChatMessage(new ChatComponentText("[BowStatus] Usage: /bowstatus reset <arrow|fireball|all>"));
+            sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocal("playerhighlight.bowstatus.usage")));
             return;
         }
 
@@ -101,8 +100,8 @@ public class BowStatusCommand extends CommandBase {
                 }
             }
         } else {
-            sender.addChatMessage(new ChatComponentText("[BowStatus] Unknown type: " + type));
-            sender.addChatMessage(new ChatComponentText("[BowStatus] Usage: /bowstatus reset <arrow|fireball|all>"));
+            sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted("playerhighlight.bowstatus.unknown_type", type)));
+            sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocal("playerhighlight.bowstatus.usage")));
             return;
         }
 
@@ -116,6 +115,6 @@ public class BowStatusCommand extends CommandBase {
             if (i > 0) sb.append(", ");
             sb.append(ids.get(i));
         }
-        sender.addChatMessage(new ChatComponentText("[BowStatus] Reset learning for: " + sb.toString()));
+        sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted("playerhighlight.bowstatus.reset_done", sb.toString())));
     }
 }

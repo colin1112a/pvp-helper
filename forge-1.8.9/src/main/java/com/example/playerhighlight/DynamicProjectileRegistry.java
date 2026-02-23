@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 
 import java.util.Map;
 import java.util.TreeMap;
@@ -117,7 +118,7 @@ public class DynamicProjectileRegistry {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer != null) {
             String displayName = BowEnchantmentDetector.getDisplayName(typeId);
-            String message = String.format("[Projectile Tracker] New projectile type detected: %s", displayName);
+            String message = StatCollector.translateToLocalFormatted("playerhighlight.registry.new_type", displayName);
 
             ChatComponentText text = new ChatComponentText(message);
             text.setChatStyle(new ChatStyle().setColor(EnumChatFormatting.GREEN));

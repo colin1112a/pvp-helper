@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatStyle;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 import net.minecraft.util.Vec3;
 
 import java.util.*;
@@ -59,6 +60,10 @@ public class CalibrationSystem {
 
     // 调试模式
     private static boolean debugMode = false;
+
+    // 异常样本拒绝消息冷却
+    private static final long OUTLIER_REJECTED_MESSAGE_COOLDOWN_MS = 10000;
+    private static final Map<String, Long> lastOutlierRejectedMessageMs = new ConcurrentHashMap<String, Long>();
 
     // 本地玩家射击的"重复箭实体"缓冲
     private static final long LOCAL_SHOT_BUCKET_MS = 1000;
@@ -140,9 +145,13 @@ public class CalibrationSystem {
         int totalSamples = typeData.getSampleCount();
 
         if (debugMode) {
-            sendDebugMessage(String.format(
-                "[Calibration] %s: Trajectory RMSE=%.2f | Avg=%.2f | Samples=%d | Distance=%.1fm",
-                BowEnchantmentDetector.getDisplayName(typeId), error, avgError, totalSamples, flightDistance
+            sendDebugMessage(StatCollector.translateToLocalFormatted(
+                "playerhighlight.calibration.debug_trajectory",
+                BowEnchantmentDetector.getDisplayName(typeId),
+                String.format("%.2f", error),
+                String.format("%.2f", avgError),
+                String.valueOf(totalSamples),
+                String.format("%.1f", flightDistance)
             ));
         }
 
@@ -331,11 +340,11 @@ public class CalibrationSystem {
 
         double dist = recording.initialPos.distanceTo(recording.getActualLandingPos());
         String displayName = BowEnchantmentDetector.getDisplayName(recording.typeId);
-        mc.thePlayer.addChatMessage(new ChatComponentText(String.format(
-                "[Calibration] Abnormal local shot detected (%s, dist=%.1f, ticks=%d). Ignored for learning.",
+        mc.thePlayer.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted(
+                "playerhighlight.calibration.abnormal_local_shot",
                 displayName,
-                dist,
-                recording.getTickCount()
+                String.format("%.1f", dist),
+                String.valueOf(recording.getTickCount())
         )));
     }
 
@@ -368,13 +377,13 @@ public class CalibrationSystem {
 
         if ((gravityChange > MIN_PARAM_CHANGE || dragChange > MIN_PARAM_CHANGE)
             && shouldEmitCalibrationMessage(typeId, currentDrag, currentGravity, newDrag, newGravity)) {
-            String message = String.format(
-                "[Calibration] %s: G %.4f->%.4f | D %.4f->%.4f | pairs=%d/%d",
+            String message = StatCollector.translateToLocalFormatted(
+                "playerhighlight.calibration.param_update",
                 BowEnchantmentDetector.getDisplayName(typeId),
-                currentGravity, newGravity,
-                currentDrag, newDrag,
-                estimate.dragPairsUsed,
-                estimate.gravityPairsUsed
+                String.format("%.4f", currentGravity), String.format("%.4f", newGravity),
+                String.format("%.4f", currentDrag), String.format("%.4f", newDrag),
+                String.valueOf(estimate.dragPairsUsed),
+                String.valueOf(estimate.gravityPairsUsed)
             );
             if (debugMode) {
                 sendDebugMessage(message);
@@ -604,17 +613,29 @@ public class CalibrationSystem {
     }
 
     /**
-     * 发送异常样本拒绝消息（红色）
+     * 发送异常样本拒绝消息（红色），10 秒冷却
      */
     private static void sendOutlierRejectedMessage(String typeId, double error, double avgError, double distance) {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.thePlayer == null) {
             return;
         }
+
+        long now = System.currentTimeMillis();
+        Long last = lastOutlierRejectedMessageMs.get(typeId);
+        long lastTime = last != null ? last.longValue() : 0L;
+        if (now - lastTime < OUTLIER_REJECTED_MESSAGE_COOLDOWN_MS) {
+            return;
+        }
+        lastOutlierRejectedMessageMs.put(typeId, Long.valueOf(now));
+
         String displayName = BowEnchantmentDetector.getDisplayName(typeId);
-        String message = String.format(
-                "[Calibration] %s: Outlier rejected (RMSE=%.2f, avg=%.2f, dist=%.1f). Not learned.",
-                displayName, error, avgError, distance
+        String message = StatCollector.translateToLocalFormatted(
+                "playerhighlight.calibration.outlier_rejected",
+                displayName,
+                String.format("%.2f", error),
+                String.format("%.2f", avgError),
+                String.format("%.1f", distance)
         );
         ChatComponentText text = new ChatComponentText(message);
         text.setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED));

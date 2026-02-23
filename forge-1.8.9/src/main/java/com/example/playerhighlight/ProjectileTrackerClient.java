@@ -7,7 +7,11 @@ import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.entity.projectile.EntityLargeFireball;
 import net.minecraft.entity.projectile.EntitySmallFireball;
+import net.minecraft.network.play.server.S02PacketChat;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.ChatStyle;
+import net.minecraft.util.StatCollector;
 import net.minecraft.util.Vec3;
 
 import java.util.ArrayDeque;
@@ -43,6 +47,10 @@ public class ProjectileTrackerClient {
     private static final double FULLY_DRAWN_ARROW_SPEED_SQ = 2.75 * 2.75;
     private static final Map<UUID, Long> arrowLearningSuppressedUntilTick = new ConcurrentHashMap<UUID, Long>();
     private static final Map<UUID, ArrowSpamWindow> arrowSpamWindows = new ConcurrentHashMap<UUID, ArrowSpamWindow>();
+
+    // NEARBY 警报冷却：同一射手 3 秒内只发一条 NEARBY 聊天警告
+    private static final long NEARBY_ALERT_COOLDOWN_MS = 3000;
+    private static final Map<String, Long> nearbyAlertCooldowns = new ConcurrentHashMap<String, Long>();
 
     // 射手推断
     private static final Map<UUID, PlayerSnapshot> lastPlayerSnapshots = new ConcurrentHashMap<UUID, PlayerSnapshot>();
@@ -219,20 +227,49 @@ public class ProjectileTrackerClient {
         }
     }
 
+    /**
+     * 发送警报消息
+     *
+     * 非危险弹道（非 NEARBY）：使用 actionbar 显示，自动覆盖上一条，不占聊天栏。
+     * 危险弹道（NEARBY WARNING）：保留聊天栏显示，但同一射手 3 秒内只发一条。
+     */
     private static void sendAlertMessage(Minecraft mc, TrackedProjectile tracked) {
-        String projectileType = tracked.getType();
+        String projectileTypeKey = tracked.getType();
         String shooterName = tracked.getShooterName();
         Vec3 landing = tracked.getPrediction().landingPos;
         double alertRange = ModConfig.getInstance().getNearbyWarningRange();
         boolean isNear = landing.distanceTo(mc.thePlayer.getPositionVector()) <= alertRange;
 
-        String base = "[Projectile Alert] " + projectileType + " from " + shooterName
-                + " | Landing: " + String.format("(%.1f, %.1f, %.1f)", landing.xCoord, landing.yCoord, landing.zCoord);
-        if (isNear) {
-            base = base + " [NEARBY WARNING]";
+        String projectileName = StatCollector.translateToLocal(projectileTypeKey);
+        String coordStr = String.format("(%.1f, %.1f, %.1f)", landing.xCoord, landing.yCoord, landing.zCoord);
+
+        if (!isNear) {
+            // 非危险弹道：actionbar 显示（自动覆盖上一条）
+            String actionbarText = StatCollector.translateToLocalFormatted("playerhighlight.alert.actionbar",
+                    projectileName, shooterName, coordStr);
+            S02PacketChat packet = new S02PacketChat(new ChatComponentText(actionbarText), (byte) 2);
+            mc.getNetHandler().handleChat(packet);
+            return;
         }
 
-        mc.thePlayer.addChatMessage(new ChatComponentText(base));
+        // 危险弹道（NEARBY）：聊天栏显示，同一射手 3 秒冷却
+        long now = System.currentTimeMillis();
+        Long lastTime = nearbyAlertCooldowns.get(shooterName);
+        if (lastTime != null && (now - lastTime.longValue()) < NEARBY_ALERT_COOLDOWN_MS) {
+            return;
+        }
+        nearbyAlertCooldowns.put(shooterName, Long.valueOf(now));
+
+        String messageText = StatCollector.translateToLocalFormatted("playerhighlight.alert.message",
+                projectileName, shooterName, coordStr);
+        String nearbyWarning = StatCollector.translateToLocal("playerhighlight.alert.nearby_warning");
+
+        ChatComponentText message = new ChatComponentText(messageText);
+        ChatComponentText warningPart = new ChatComponentText(nearbyWarning);
+        warningPart.setChatStyle(new ChatStyle().setColor(EnumChatFormatting.RED));
+        message.appendSibling(warningPart);
+
+        mc.thePlayer.addChatMessage(message);
     }
 
     private static void cleanupDeadProjectiles(Minecraft mc) {
@@ -479,11 +516,14 @@ public class ProjectileTrackerClient {
                 || entity instanceof EntityLargeFireball;
     }
 
+    /**
+     * 获取弹道类型翻译键
+     */
     private static String getProjectileName(Entity projectile) {
-        if (projectile instanceof EntityArrow) return "Arrow";
-        if (projectile instanceof EntitySmallFireball) return "Blaze Fireball";
-        if (projectile instanceof EntityLargeFireball) return "Ghast Fireball";
-        return "Unknown Projectile";
+        if (projectile instanceof EntityArrow) return "playerhighlight.projectile.arrow";
+        if (projectile instanceof EntitySmallFireball) return "playerhighlight.projectile.blaze_fireball";
+        if (projectile instanceof EntityLargeFireball) return "playerhighlight.projectile.ghast_fireball";
+        return "playerhighlight.projectile.unknown";
     }
 
     private static String getShooterName(Entity projectile) {

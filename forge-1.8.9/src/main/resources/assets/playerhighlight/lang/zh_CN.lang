@@ -1,0 +1,59 @@
+category.playerhighlight=玩家高亮
+
+playerhighlight.config.title=玩家高亮设置
+playerhighlight.config.player_highlight=玩家高亮: %s
+playerhighlight.config.projectile_prediction=弹道预测: %s
+playerhighlight.config.trajectory_line=弹道轨迹线: %s
+playerhighlight.config.bow_preview=弓箭预瞄: %s
+playerhighlight.config.bow_preview_line=预瞄轨迹线: %s
+playerhighlight.config.bow_preview_marker=预瞄落点标记: %s
+playerhighlight.config.bow_preview_inaccuracy=预瞄随机偏移: %s
+playerhighlight.config.fluid_drag=流体减速模拟: %s
+playerhighlight.config.warning_range=警告范围: %s
+playerhighlight.config.done=完成
+playerhighlight.config.hint=按住 TAB 高亮玩家，在下方调整选项。
+playerhighlight.config.on=§a开启
+playerhighlight.config.off=§c关闭
+
+playerhighlight.projectile.arrow=箭
+playerhighlight.projectile.spectral_arrow=光灵箭
+playerhighlight.projectile.trident=三叉戟
+playerhighlight.projectile.blaze_fireball=烈焰弹
+playerhighlight.projectile.ghast_fireball=恶魂火球
+playerhighlight.projectile.unknown=未知弹道
+
+playerhighlight.type.arrow=箭
+playerhighlight.type.trident=三叉戟
+playerhighlight.type.fireball=火球
+playerhighlight.type.unknown=未知
+
+playerhighlight.alert.message=[弹道警报] %s 来自 %s | 落点: %s
+playerhighlight.alert.actionbar=[弹道警报] %s 来自 %s | 落点: %s
+playerhighlight.alert.nearby_warning= [危险！即将命中]
+
+playerhighlight.calibration.outlier_rejected=[校准] %s: 异常样本已拒绝 (RMSE=%s, 均值=%s, 距离=%s)，未学习。
+playerhighlight.calibration.abnormal_local_shot=[校准] 检测到异常本地射击 (%s, 距离=%s, ticks=%s)，已忽略。
+playerhighlight.calibration.debug_trajectory=[校准] %s: 轨迹 RMSE=%s | 均值=%s | 样本=%s | 距离=%s格
+playerhighlight.calibration.param_update=[校准] %s: G %s→%s | D %s→%s | 对数=%s/%s
+
+playerhighlight.registry.new_type=[弹道追踪] 发现新弹道类型: %s
+
+playerhighlight.bowstatus.no_types=[弓状态] 尚未注册任何弹道类型。
+playerhighlight.bowstatus.registered_types=[弓状态] 已注册类型: %s
+playerhighlight.bowstatus.type_line=%s | 样本=%s 平均RMSE=%s | G=%s D=%s
+playerhighlight.bowstatus.usage=[弓状态] 用法: /bowstatus reset <arrow|trident|fireball|all>
+playerhighlight.bowstatus.unknown_type=[弓状态] 未知类型: %s
+playerhighlight.bowstatus.reset_done=[弓状态] 已重置学习数据: %s
+
+playerhighlight.lookpvp.not_in_world=[PVP查看] 不在世界中。
+playerhighlight.lookpvp.no_data=[PVP查看] 暂无PvP数据（需先受到玩家攻击）。
+playerhighlight.lookpvp.opponent=[PVP查看] 对手: %s (%s) | 上次: %s秒前 | Δtick=%s
+playerhighlight.lookpvp.current_distance=[PVP查看] 当前距离: %s (已加载)
+playerhighlight.lookpvp.opponent_not_loaded=[PVP查看] 对手当前未加载（超出范围或已断开连接）。
+playerhighlight.lookpvp.incoming_none=[PVP查看] 受击次数: 0
+playerhighlight.lookpvp.incoming_summary=[PVP查看] 受击: 总计=%s 保留=%s | 上次reach=%s (眼->碰撞箱) | 上次(中心=%s 碰撞箱=%s)
+playerhighlight.lookpvp.incoming_stats=[PVP查看] 受击统计: reach(最小/均值/最大)=%s/%s/%s | 中心(最小/均值/最大)=%s/%s/%s | 碰撞箱(最小/均值/最大)=%s/%s/%s
+playerhighlight.lookpvp.incoming_detail=[PVP查看] -%s秒 伤害=%s reach=%s 距离(中心=%s 水平=%s 眼=%s 碰撞箱=%s) 来源=%s 直接=%s 手持=%s
+playerhighlight.lookpvp.outgoing_none=[PVP查看] 输出攻击: 0
+playerhighlight.lookpvp.outgoing_summary=[PVP查看] 输出攻击: 总计=%s 保留=%s | 上次中心=%s | 手持=%s
+playerhighlight.lookpvp.note=[PVP查看] 注意: 距离为客户端命中时快照，可能因延迟/插值与服务器不同。

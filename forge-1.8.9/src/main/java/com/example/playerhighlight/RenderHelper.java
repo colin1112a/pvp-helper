@@ -1,6 +1,5 @@
 package com.example.playerhighlight;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
@@ -22,22 +21,5 @@ public class RenderHelper {
         }
 
         return 0xFFFFFF;
-    }
-
-    public static float[] colorToFloatArray(int color) {
-        float r = ((color >> 16) & 0xFF) / 255.0F;
-        float g = ((color >> 8) & 0xFF) / 255.0F;
-        float b = (color & 0xFF) / 255.0F;
-        return new float[]{r, g, b, 1.0F};
-    }
-
-    public static boolean shouldRenderOutline(EntityPlayer player) {
-        Minecraft mc = Minecraft.getMinecraft();
-
-        if (player == mc.thePlayer && mc.gameSettings.thirdPersonView == 0) {
-            return false;
-        }
-
-        return PlayerHighlightMod.isHighlightEnabled();
     }
 }

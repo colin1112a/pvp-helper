@@ -1,0 +1,59 @@
+category.playerhighlight=Player Highlight
+
+playerhighlight.config.title=Player Highlight Settings
+playerhighlight.config.player_highlight=Player Highlight: %s
+playerhighlight.config.projectile_prediction=Projectile Prediction: %s
+playerhighlight.config.trajectory_line=Trajectory Line: %s
+playerhighlight.config.bow_preview=Bow Preview: %s
+playerhighlight.config.bow_preview_line=Bow Preview Line: %s
+playerhighlight.config.bow_preview_marker=Bow Preview Marker: %s
+playerhighlight.config.bow_preview_inaccuracy=Bow Preview Inaccuracy: %s
+playerhighlight.config.fluid_drag=Fluid Drag Simulation: %s
+playerhighlight.config.warning_range=Warning Range: %s
+playerhighlight.config.done=Done
+playerhighlight.config.hint=Hold TAB to highlight. Configure options below.
+playerhighlight.config.on=§aON
+playerhighlight.config.off=§cOFF
+
+playerhighlight.projectile.arrow=Arrow
+playerhighlight.projectile.spectral_arrow=Spectral Arrow
+playerhighlight.projectile.trident=Trident
+playerhighlight.projectile.blaze_fireball=Blaze Fireball
+playerhighlight.projectile.ghast_fireball=Ghast Fireball
+playerhighlight.projectile.unknown=Unknown Projectile
+
+playerhighlight.type.arrow=Arrow
+playerhighlight.type.trident=Trident
+playerhighlight.type.fireball=Fireball
+playerhighlight.type.unknown=Unknown
+
+playerhighlight.alert.message=[Projectile Alert] %s from %s | Landing: %s
+playerhighlight.alert.actionbar=[Projectile Alert] %s from %s | Landing: %s
+playerhighlight.alert.nearby_warning= [NEARBY WARNING]
+
+playerhighlight.calibration.outlier_rejected=[Calibration] %s: Outlier rejected (RMSE=%s, avg=%s, dist=%s). Not learned.
+playerhighlight.calibration.abnormal_local_shot=[Calibration] Abnormal local shot detected (%s, dist=%s, ticks=%s). Ignored for learning.
+playerhighlight.calibration.debug_trajectory=[Calibration] %s: Trajectory RMSE=%s | Avg=%s | Samples=%s | Distance=%sm
+playerhighlight.calibration.param_update=[Calibration] %s: G %s→%s | D %s→%s | pairs=%s/%s
+
+playerhighlight.registry.new_type=[Projectile Tracker] New projectile type detected: %s
+
+playerhighlight.bowstatus.no_types=[BowStatus] No projectile types registered yet.
+playerhighlight.bowstatus.registered_types=[BowStatus] Registered types: %s
+playerhighlight.bowstatus.type_line=%s | samples=%s avgRMSE=%s | G=%s D=%s
+playerhighlight.bowstatus.usage=[BowStatus] Usage: /bowstatus reset <arrow|trident|fireball|all>
+playerhighlight.bowstatus.unknown_type=[BowStatus] Unknown type: %s
+playerhighlight.bowstatus.reset_done=[BowStatus] Reset learning for: %s
+
+playerhighlight.lookpvp.not_in_world=[LookPVP] Not in a world.
+playerhighlight.lookpvp.no_data=[LookPVP] No PvP data yet (take damage from a player first).
+playerhighlight.lookpvp.opponent=[LookPVP] Opponent: %s (%s) | last: %ss ago | Δtick=%s
+playerhighlight.lookpvp.current_distance=[LookPVP] Current distance: %s (loaded)
+playerhighlight.lookpvp.opponent_not_loaded=[LookPVP] Opponent is not currently loaded (out of range or disconnected).
+playerhighlight.lookpvp.incoming_none=[LookPVP] Incoming hits: 0
+playerhighlight.lookpvp.incoming_summary=[LookPVP] Incoming hits: total=%s kept=%s | last reach=%s (eye->box) | last(center=%s box=%s)
+playerhighlight.lookpvp.incoming_stats=[LookPVP] Incoming stats: reach(min/avg/max)=%s/%s/%s | center(min/avg/max)=%s/%s/%s | box(min/avg/max)=%s/%s/%s
+playerhighlight.lookpvp.incoming_detail=[LookPVP] -%ss dmg=%s reach=%s dist(center=%s h=%s eye=%s box=%s) src=%s direct=%s hand=%s
+playerhighlight.lookpvp.outgoing_none=[LookPVP] Outgoing attacks: 0
+playerhighlight.lookpvp.outgoing_summary=[LookPVP] Outgoing attacks: total=%s kept=%s | last center=%s | hand=%s
+playerhighlight.lookpvp.note=[LookPVP] Note: distances are client-side snapshots at hit time; may differ from server due to ping/interp.

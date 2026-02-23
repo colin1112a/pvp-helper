@@ -6,6 +6,7 @@ import net.minecraft.command.CommandException;
 import net.minecraft.command.ICommandSender;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.StatCollector;
 
 import java.util.List;
 import java.util.Locale;
@@ -39,13 +40,13 @@ public class LookPvpCommand extends CommandBase {
     public void processCommand(ICommandSender sender, String[] args) throws CommandException {
         Minecraft mc = Minecraft.getMinecraft();
         if (mc.theWorld == null || mc.thePlayer == null) {
-            sender.addChatMessage(new ChatComponentText("[LookPVP] Not in a world."));
+            sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocal("playerhighlight.lookpvp.not_in_world")));
             return;
         }
 
         PvpTrackerClient.PvpSession session = PvpTrackerClient.getMostRecentSession();
         if (session == null) {
-            sender.addChatMessage(new ChatComponentText("[LookPVP] No PvP data yet (take damage from a player first)."));
+            sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocal("playerhighlight.lookpvp.no_data")));
             return;
         }
 
@@ -59,19 +60,21 @@ public class LookPvpCommand extends CommandBase {
         long tickDelta = (session.lastInteractionTick > 0 && nowTick >= session.lastInteractionTick)
                 ? (nowTick - session.lastInteractionTick) : -1L;
 
-        sender.addChatMessage(new ChatComponentText(String.format(
-                Locale.ROOT,
-                "[LookPVP] Opponent: %s (%s) | last: %.2fs ago | Δtick=%d",
-                opponentName, shortUuid, clampNonNegative(secondsAgo), tickDelta
+        sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted(
+                "playerhighlight.lookpvp.opponent",
+                opponentName, shortUuid,
+                String.format(Locale.ROOT, "%.2f", clampNonNegative(secondsAgo)),
+                String.valueOf(tickDelta)
         )));
 
         EntityPlayer opponentEntity = opponentUuid != null ? findLoadedPlayerByUuid(mc, opponentUuid) : null;
         if (opponentEntity != null) {
             double currentDist = opponentEntity.getPositionVector().distanceTo(mc.thePlayer.getPositionVector());
-            sender.addChatMessage(new ChatComponentText(String.format(Locale.ROOT,
-                    "[LookPVP] Current distance: %.3f (loaded)", currentDist)));
+            sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted(
+                    "playerhighlight.lookpvp.current_distance",
+                    String.format(Locale.ROOT, "%.3f", currentDist))));
         } else {
-            sender.addChatMessage(new ChatComponentText("[LookPVP] Opponent is not currently loaded (out of range or disconnected)."));
+            sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocal("playerhighlight.lookpvp.opponent_not_loaded")));
         }
 
         List<PvpTrackerClient.IncomingHit> incoming = session.getIncomingHitsNewestFirst();
@@ -81,13 +84,13 @@ public class LookPvpCommand extends CommandBase {
         List<PvpTrackerClient.OutgoingAttack> outgoing = session.getOutgoingAttacksNewestFirst();
         printOutgoingSummary(sender, session, outgoing);
 
-        sender.addChatMessage(new ChatComponentText("[LookPVP] Note: distances are client-side snapshots at hit time; may differ from server due to ping/interp."));
+        sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocal("playerhighlight.lookpvp.note")));
     }
 
     private void printIncomingSummary(ICommandSender sender, PvpTrackerClient.PvpSession session,
                                       List<PvpTrackerClient.IncomingHit> incoming) {
         if (incoming == null || incoming.isEmpty()) {
-            sender.addChatMessage(new ChatComponentText("[LookPVP] Incoming hits: 0"));
+            sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocal("playerhighlight.lookpvp.incoming_none")));
             return;
         }
 
@@ -116,15 +119,26 @@ public class LookPvpCommand extends CommandBase {
         double avgBox = count > 0 ? (sumBox / count) : Double.NaN;
         double avgReach = count > 0 ? (sumReach / count) : Double.NaN;
 
-        sender.addChatMessage(new ChatComponentText(String.format(Locale.ROOT,
-                "[LookPVP] Incoming hits: total=%d kept=%d | last reach=%.3f (eye->box) | last(center=%.3f box=%.3f)",
-                session != null ? session.incomingHitCountTotal : incoming.size(),
-                incoming.size(), lastReach, lastCenter, lastBox)));
+        sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted(
+                "playerhighlight.lookpvp.incoming_summary",
+                String.valueOf(session != null ? session.incomingHitCountTotal : incoming.size()),
+                String.valueOf(incoming.size()),
+                String.format(Locale.ROOT, "%.3f", lastReach),
+                String.format(Locale.ROOT, "%.3f", lastCenter),
+                String.format(Locale.ROOT, "%.3f", lastBox))));
 
         if (count > 0 && minCenter < Double.POSITIVE_INFINITY) {
-            sender.addChatMessage(new ChatComponentText(String.format(Locale.ROOT,
-                    "[LookPVP] Incoming stats: reach(min/avg/max)=%.3f/%.3f/%.3f | center(min/avg/max)=%.3f/%.3f/%.3f | box(min/avg/max)=%.3f/%.3f/%.3f",
-                    minReach, avgReach, maxReach, minCenter, avgCenter, maxCenter, minBox, avgBox, maxBox)));
+            sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted(
+                    "playerhighlight.lookpvp.incoming_stats",
+                    String.format(Locale.ROOT, "%.3f", minReach),
+                    String.format(Locale.ROOT, "%.3f", avgReach),
+                    String.format(Locale.ROOT, "%.3f", maxReach),
+                    String.format(Locale.ROOT, "%.3f", minCenter),
+                    String.format(Locale.ROOT, "%.3f", avgCenter),
+                    String.format(Locale.ROOT, "%.3f", maxCenter),
+                    String.format(Locale.ROOT, "%.3f", minBox),
+                    String.format(Locale.ROOT, "%.3f", avgBox),
+                    String.format(Locale.ROOT, "%.3f", maxBox))));
         }
     }
 
@@ -134,11 +148,17 @@ public class LookPvpCommand extends CommandBase {
         for (PvpTrackerClient.IncomingHit hit : incoming) {
             if (hit == null || hit.distance == null) continue;
             double secondsAgo = (nowMs - hit.timeMs) / 1000.0;
-            sender.addChatMessage(new ChatComponentText(String.format(Locale.ROOT,
-                    "[LookPVP] -%.2fs dmg=%.2f reach=%.3f dist(center=%.3f h=%.3f eye=%.3f box=%.3f) src=%s direct=%s hand=%s",
-                    clampNonNegative(secondsAgo), hit.damageAmount, hit.distance.eyeToTargetBoxDistance,
-                    hit.distance.centerDistance, hit.distance.horizontalDistance, hit.distance.eyeDistance,
-                    hit.distance.boxDistance, safeString(hit.damageName), safeString(hit.directSourceTypeId),
+            sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted(
+                    "playerhighlight.lookpvp.incoming_detail",
+                    String.format(Locale.ROOT, "%.2f", clampNonNegative(secondsAgo)),
+                    String.format(Locale.ROOT, "%.2f", hit.damageAmount),
+                    String.format(Locale.ROOT, "%.3f", hit.distance.eyeToTargetBoxDistance),
+                    String.format(Locale.ROOT, "%.3f", hit.distance.centerDistance),
+                    String.format(Locale.ROOT, "%.3f", hit.distance.horizontalDistance),
+                    String.format(Locale.ROOT, "%.3f", hit.distance.eyeDistance),
+                    String.format(Locale.ROOT, "%.3f", hit.distance.boxDistance),
+                    safeString(hit.damageName),
+                    safeString(hit.directSourceTypeId),
                     safeString(hit.opponentMainHandItemId))));
             printed++;
             if (printed >= MAX_PRINT_HITS) break;
@@ -148,15 +168,17 @@ public class LookPvpCommand extends CommandBase {
     private void printOutgoingSummary(ICommandSender sender, PvpTrackerClient.PvpSession session,
                                       List<PvpTrackerClient.OutgoingAttack> outgoing) {
         if (outgoing == null || outgoing.isEmpty()) {
-            sender.addChatMessage(new ChatComponentText("[LookPVP] Outgoing attacks: 0"));
+            sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocal("playerhighlight.lookpvp.outgoing_none")));
             return;
         }
         PvpTrackerClient.OutgoingAttack last = outgoing.get(0);
         double lastCenter = last != null && last.distance != null ? last.distance.centerDistance : Double.NaN;
-        sender.addChatMessage(new ChatComponentText(String.format(Locale.ROOT,
-                "[LookPVP] Outgoing attacks: total=%d kept=%d | last center=%.3f | hand=%s",
-                session != null ? session.outgoingAttackCountTotal : outgoing.size(),
-                outgoing.size(), lastCenter, last != null ? safeString(last.myMainHandItemId) : "unknown")));
+        sender.addChatMessage(new ChatComponentText(StatCollector.translateToLocalFormatted(
+                "playerhighlight.lookpvp.outgoing_summary",
+                String.valueOf(session != null ? session.outgoingAttackCountTotal : outgoing.size()),
+                String.valueOf(outgoing.size()),
+                String.format(Locale.ROOT, "%.3f", lastCenter),
+                last != null ? safeString(last.myMainHandItemId) : "unknown")));
     }
 
     private static String shortUuid(UUID uuid) {
