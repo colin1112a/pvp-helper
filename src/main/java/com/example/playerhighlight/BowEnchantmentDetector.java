@@ -5,6 +5,7 @@ import net.minecraft.entity.projectile.ArrowEntity;
 import net.minecraft.entity.projectile.SpectralArrowEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.text.Text;
 
 /**
  * 弓/箭类型检测器
@@ -44,17 +45,17 @@ public final class BowEnchantmentDetector {
     }
 
     /**
-     * 获取类型的显示名称
+     * 获取类型的显示名称（可翻译）
      */
-    public static String getDisplayName(String typeId) {
+    public static Text getDisplayName(String typeId) {
         if (typeId == null || typeId.isEmpty()) {
-            return "Unknown";
+            return Text.translatable("playerhighlight.type.unknown");
         }
         return switch (typeId) {
-            case TYPE_ARROW -> "Arrow";
-            case "TRIDENT" -> "Trident";
-            case "FIREBALL" -> "Fireball";
-            default -> typeId.replace("_", " ");
+            case TYPE_ARROW -> Text.translatable("playerhighlight.type.arrow");
+            case "TRIDENT" -> Text.translatable("playerhighlight.type.trident");
+            case "FIREBALL" -> Text.translatable("playerhighlight.type.fireball");
+            default -> Text.literal(typeId.replace("_", " "));
         };
     }
 }

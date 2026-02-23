@@ -1,6 +1,5 @@
 package com.example.playerhighlight;
 
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.DyeableArmorItem;
 import net.minecraft.item.ItemStack;
@@ -28,30 +27,5 @@ public class RenderHelper {
 
 		// Default to white if no leather helmet
 		return 0xFFFFFF;
-	}
-
-	/**
-	 * Convert RGB int color to float array [r, g, b, a]
-	 */
-	public static float[] colorToFloatArray(int color) {
-		float r = ((color >> 16) & 0xFF) / 255.0F;
-		float g = ((color >> 8) & 0xFF) / 255.0F;
-		float b = (color & 0xFF) / 255.0F;
-		return new float[]{r, g, b, 1.0F};
-	}
-
-	/**
-	 * Check if we should render outline for a player
-	 */
-	public static boolean shouldRenderOutline(PlayerEntity player) {
-		MinecraftClient client = MinecraftClient.getInstance();
-
-		// Don't render outline for the local player in first person
-		if (player == client.player && client.options.getPerspective().isFirstPerson()) {
-			return false;
-		}
-
-		// Only render if highlight is enabled
-		return PlayerHighlightClient.isHighlightEnabled();
 	}
 }

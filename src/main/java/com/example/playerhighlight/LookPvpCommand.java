@@ -29,13 +29,13 @@ public final class LookPvpCommand {
         FabricClientCommandSource source = ctx.getSource();
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.world == null || client.player == null) {
-            source.sendFeedback(Text.literal("[LookPVP] Not in a world."));
+            source.sendFeedback(Text.translatable("playerhighlight.lookpvp.not_in_world"));
             return 1;
         }
 
         PvpTrackerClient.PvpSession session = PvpTrackerClient.getMostRecentSession();
         if (session == null) {
-            source.sendFeedback(Text.literal("[LookPVP] No PvP data yet (take damage from a player first)."));
+            source.sendFeedback(Text.translatable("playerhighlight.lookpvp.no_data"));
             return 1;
         }
 
@@ -50,21 +50,18 @@ public final class LookPvpCommand {
                 ? (nowTick - session.lastInteractionTick)
                 : -1L;
 
-        source.sendFeedback(Text.literal(String.format(
-                Locale.ROOT,
-                "[LookPVP] Opponent: %s (%s) | last: %.2fs ago | Δtick=%d",
-                opponentName,
-                shortUuid,
-                clampNonNegative(secondsAgo),
-                tickDelta
-        )));
+        source.sendFeedback(Text.translatable("playerhighlight.lookpvp.opponent",
+                opponentName, shortUuid,
+                String.format(Locale.ROOT, "%.2f", clampNonNegative(secondsAgo)),
+                String.valueOf(tickDelta)));
 
         PlayerEntity opponentEntity = opponentUuid != null ? findLoadedPlayerByUuid(client, opponentUuid) : null;
         if (opponentEntity != null) {
             double currentDist = opponentEntity.getPos().distanceTo(client.player.getPos());
-            source.sendFeedback(Text.literal(String.format(Locale.ROOT, "[LookPVP] Current distance: %.3f (loaded)", currentDist)));
+            source.sendFeedback(Text.translatable("playerhighlight.lookpvp.current_distance",
+                    String.format(Locale.ROOT, "%.3f", currentDist)));
         } else {
-            source.sendFeedback(Text.literal("[LookPVP] Opponent is not currently loaded (out of range or disconnected)."));
+            source.sendFeedback(Text.translatable("playerhighlight.lookpvp.opponent_not_loaded"));
         }
 
         List<PvpTrackerClient.IncomingHit> incoming = session.getIncomingHitsNewestFirst();
@@ -74,14 +71,14 @@ public final class LookPvpCommand {
         List<PvpTrackerClient.OutgoingAttack> outgoing = session.getOutgoingAttacksNewestFirst();
         printOutgoingSummary(source, session, outgoing);
 
-        source.sendFeedback(Text.literal("[LookPVP] Note: distances are client-side snapshots at hit time; may differ from server due to ping/interp."));
+        source.sendFeedback(Text.translatable("playerhighlight.lookpvp.note"));
         return 1;
     }
 
     private static void printIncomingSummary(FabricClientCommandSource source, PvpTrackerClient.PvpSession session,
                                              List<PvpTrackerClient.IncomingHit> incoming) {
         if (incoming == null || incoming.isEmpty()) {
-            source.sendFeedback(Text.literal("[LookPVP] Incoming hits: 0"));
+            source.sendFeedback(Text.translatable("playerhighlight.lookpvp.incoming_none"));
             return;
         }
 
@@ -126,30 +123,24 @@ public final class LookPvpCommand {
         double avgBox = count > 0 ? (sumBox / count) : Double.NaN;
         double avgReach = count > 0 ? (sumReach / count) : Double.NaN;
 
-        source.sendFeedback(Text.literal(String.format(
-                Locale.ROOT,
-                "[LookPVP] Incoming hits: total=%d kept=%d | last reach=%.3f (eye->box) | last(center=%.3f box=%.3f)",
-                session != null ? session.incomingHitCountTotal : incoming.size(),
-                incoming.size(),
-                lastReach,
-                lastCenter,
-                lastBox
-        )));
+        source.sendFeedback(Text.translatable("playerhighlight.lookpvp.incoming_summary",
+                String.valueOf(session != null ? session.incomingHitCountTotal : incoming.size()),
+                String.valueOf(incoming.size()),
+                String.format(Locale.ROOT, "%.3f", lastReach),
+                String.format(Locale.ROOT, "%.3f", lastCenter),
+                String.format(Locale.ROOT, "%.3f", lastBox)));
 
         if (count > 0 && minCenter < Double.POSITIVE_INFINITY && minBox < Double.POSITIVE_INFINITY && minReach < Double.POSITIVE_INFINITY) {
-            source.sendFeedback(Text.literal(String.format(
-                    Locale.ROOT,
-                    "[LookPVP] Incoming stats: reach(min/avg/max)=%.3f/%.3f/%.3f | center(min/avg/max)=%.3f/%.3f/%.3f | box(min/avg/max)=%.3f/%.3f/%.3f",
-                    minReach,
-                    avgReach,
-                    maxReach,
-                    minCenter,
-                    avgCenter,
-                    maxCenter,
-                    minBox,
-                    avgBox,
-                    maxBox
-            )));
+            source.sendFeedback(Text.translatable("playerhighlight.lookpvp.incoming_stats",
+                    String.format(Locale.ROOT, "%.3f", minReach),
+                    String.format(Locale.ROOT, "%.3f", avgReach),
+                    String.format(Locale.ROOT, "%.3f", maxReach),
+                    String.format(Locale.ROOT, "%.3f", minCenter),
+                    String.format(Locale.ROOT, "%.3f", avgCenter),
+                    String.format(Locale.ROOT, "%.3f", maxCenter),
+                    String.format(Locale.ROOT, "%.3f", minBox),
+                    String.format(Locale.ROOT, "%.3f", avgBox),
+                    String.format(Locale.ROOT, "%.3f", maxBox)));
         }
     }
 
@@ -164,20 +155,17 @@ public final class LookPvpCommand {
                 continue;
             }
             double secondsAgo = (nowMs - hit.timeMs) / 1000.0;
-            source.sendFeedback(Text.literal(String.format(
-                    Locale.ROOT,
-                    "[LookPVP] -%.2fs dmg=%.2f reach=%.3f dist(center=%.3f h=%.3f eye=%.3f box=%.3f) src=%s direct=%s hand=%s",
-                    clampNonNegative(secondsAgo),
-                    hit.damageAmount,
-                    hit.distance.eyeToTargetBoxDistance,
-                    hit.distance.centerDistance,
-                    hit.distance.horizontalDistance,
-                    hit.distance.eyeDistance,
-                    hit.distance.boxDistance,
+            source.sendFeedback(Text.translatable("playerhighlight.lookpvp.incoming_detail",
+                    String.format(Locale.ROOT, "%.2f", clampNonNegative(secondsAgo)),
+                    String.format(Locale.ROOT, "%.2f", hit.damageAmount),
+                    String.format(Locale.ROOT, "%.3f", hit.distance.eyeToTargetBoxDistance),
+                    String.format(Locale.ROOT, "%.3f", hit.distance.centerDistance),
+                    String.format(Locale.ROOT, "%.3f", hit.distance.horizontalDistance),
+                    String.format(Locale.ROOT, "%.3f", hit.distance.eyeDistance),
+                    String.format(Locale.ROOT, "%.3f", hit.distance.boxDistance),
                     safeString(hit.damageName),
                     safeString(hit.directSourceTypeId),
-                    safeString(hit.opponentMainHandItemId)
-            )));
+                    safeString(hit.opponentMainHandItemId)));
             printed++;
             if (printed >= MAX_PRINT_HITS) {
                 break;
@@ -188,20 +176,17 @@ public final class LookPvpCommand {
     private static void printOutgoingSummary(FabricClientCommandSource source, PvpTrackerClient.PvpSession session,
                                              List<PvpTrackerClient.OutgoingAttack> outgoing) {
         if (outgoing == null || outgoing.isEmpty()) {
-            source.sendFeedback(Text.literal("[LookPVP] Outgoing attacks: 0"));
+            source.sendFeedback(Text.translatable("playerhighlight.lookpvp.outgoing_none"));
             return;
         }
 
         PvpTrackerClient.OutgoingAttack last = outgoing.get(0);
         double lastCenter = last != null && last.distance != null ? last.distance.centerDistance : Double.NaN;
-        source.sendFeedback(Text.literal(String.format(
-                Locale.ROOT,
-                "[LookPVP] Outgoing attacks: total=%d kept=%d | last center=%.3f | hand=%s",
-                session != null ? session.outgoingAttackCountTotal : outgoing.size(),
-                outgoing.size(),
-                lastCenter,
-                last != null ? safeString(last.myMainHandItemId) : "unknown"
-        )));
+        source.sendFeedback(Text.translatable("playerhighlight.lookpvp.outgoing_summary",
+                String.valueOf(session != null ? session.outgoingAttackCountTotal : outgoing.size()),
+                String.valueOf(outgoing.size()),
+                String.format(Locale.ROOT, "%.3f", lastCenter),
+                last != null ? safeString(last.myMainHandItemId) : "unknown"));
     }
 
     private static String shortUuid(UUID uuid) {

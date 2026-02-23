@@ -123,11 +123,11 @@ public class DynamicProjectileRegistry {
     private void notifyNewTypeDiscovered(String typeId) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null) {
-            String displayName = BowEnchantmentDetector.getDisplayName(typeId);
-            String message = String.format("[Projectile Tracker] New projectile type detected: %s", displayName);
+            Text message = Text.translatable("playerhighlight.registry.new_type",
+                    BowEnchantmentDetector.getDisplayName(typeId));
 
             client.player.sendMessage(
-                    Text.literal(message).styled(style -> style.withColor(0x55FF55)),
+                    message.copy().styled(style -> style.withColor(0x55FF55)),
                     false
             );
         }

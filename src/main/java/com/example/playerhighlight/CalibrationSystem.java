@@ -58,7 +58,11 @@ public class CalibrationSystem {
     // 调试模式：显示每次预测的误差
     private static boolean debugMode = false;
 
-    // 本地玩家射击的“重复箭实体”缓冲：避免无形墙/回滚导致学习偏差
+    // 异常样本拒绝消息冷却
+    private static final long OUTLIER_REJECTED_MESSAGE_COOLDOWN_MS = 10000;
+    private static final Map<String, Long> lastOutlierRejectedMessageMs = new ConcurrentHashMap<>();
+
+    // 本地玩家射击的”重复箭实体”缓冲：避免无形墙/回滚导致学习偏差
     private static final long LOCAL_SHOT_BUCKET_MS = 1000;
     private static final long LOCAL_SHOT_IDLE_FLUSH_MS = 2500;
     private static final long LOCAL_SHOT_MAX_WAIT_MS = 15000;
@@ -145,9 +149,12 @@ public class CalibrationSystem {
 
         // 调试输出
         if (debugMode) {
-            sendDebugMessage(String.format(
-                "[Calibration] %s: Trajectory RMSE=%.2f | Avg=%.2f | Samples=%d | Distance=%.1fm",
-                BowEnchantmentDetector.getDisplayName(typeId), error, avgError, totalSamples, flightDistance
+            sendDebugMessage(Text.translatable("playerhighlight.calibration.debug_trajectory",
+                    BowEnchantmentDetector.getDisplayName(typeId),
+                    String.format("%.2f", error),
+                    String.format("%.2f", avgError),
+                    String.valueOf(totalSamples),
+                    String.format("%.1f", flightDistance)
             ));
         }
 
@@ -338,13 +345,12 @@ public class CalibrationSystem {
         }
 
         double dist = recording.initialPos.distanceTo(recording.getActualLandingPos());
-        String displayName = BowEnchantmentDetector.getDisplayName(recording.typeId);
-        client.player.sendMessage(Text.literal(String.format(
-                "[Calibration] Abnormal local shot detected (%s, dist=%.1f, ticks=%d). Ignored for learning.",
+        Text displayName = BowEnchantmentDetector.getDisplayName(recording.typeId);
+        client.player.sendMessage(Text.translatable("playerhighlight.calibration.abnormal_local_shot",
                 displayName,
-                dist,
-                recording.getTickCount()
-        )), false);
+                String.format("%.1f", dist),
+                String.valueOf(recording.getTickCount())
+        ), false);
     }
 
     /**
@@ -376,18 +382,17 @@ public class CalibrationSystem {
 
         if ((gravityChange > MIN_PARAM_CHANGE || dragChange > MIN_PARAM_CHANGE)
             && shouldEmitCalibrationMessage(typeId, currentDrag, currentGravity, newDrag, newGravity)) {
-            String message = String.format(
-                "[Calibration] %s: G %.4f→%.4f | D %.4f→%.4f | pairs=%d/%d",
-                BowEnchantmentDetector.getDisplayName(typeId),
-                currentGravity, newGravity,
-                currentDrag, newDrag,
-                estimate.dragPairsUsed,
-                estimate.gravityPairsUsed
+            Text message = Text.translatable("playerhighlight.calibration.param_update",
+                    BowEnchantmentDetector.getDisplayName(typeId),
+                    String.format("%.4f", currentGravity), String.format("%.4f", newGravity),
+                    String.format("%.4f", currentDrag), String.format("%.4f", newDrag),
+                    String.valueOf(estimate.dragPairsUsed),
+                    String.valueOf(estimate.gravityPairsUsed)
             );
             if (debugMode) {
                 sendDebugMessage(message);
             }
-            PlayerHighlightClient.LOGGER.info(message);
+            PlayerHighlightClient.LOGGER.info(message.getString());
         }
     }
 
@@ -611,28 +616,37 @@ public class CalibrationSystem {
     /**
      * 发送调试消息
      */
-    private static void sendDebugMessage(String message) {
+    private static void sendDebugMessage(Text message) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player != null) {
-            client.player.sendMessage(Text.literal(message), false);
+            client.player.sendMessage(message, false);
         }
     }
 
     /**
-     * 发送异常样本拒绝消息（红色）
+     * 发送异常样本拒绝消息（红色），10 秒冷却
      */
     private static void sendOutlierRejectedMessage(String typeId, double error, double avgError, double distance) {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.player == null) {
             return;
         }
-        String displayName = BowEnchantmentDetector.getDisplayName(typeId);
-        String message = String.format(
-                "[Calibration] %s: Outlier rejected (RMSE=%.2f, avg=%.2f, dist=%.1f). Not learned.",
-                displayName, error, avgError, distance
+
+        long now = System.currentTimeMillis();
+        long last = lastOutlierRejectedMessageMs.getOrDefault(typeId, 0L);
+        if (now - last < OUTLIER_REJECTED_MESSAGE_COOLDOWN_MS) {
+            return;
+        }
+        lastOutlierRejectedMessageMs.put(typeId, now);
+
+        Text message = Text.translatable("playerhighlight.calibration.outlier_rejected",
+                BowEnchantmentDetector.getDisplayName(typeId),
+                String.format("%.2f", error),
+                String.format("%.2f", avgError),
+                String.format("%.1f", distance)
         );
         client.player.sendMessage(
-                Text.literal(message).styled(style -> style.withColor(0xFF5555)),
+                message.copy().styled(style -> style.withColor(0xFF5555)),
                 false
         );
     }

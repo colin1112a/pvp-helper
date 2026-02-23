@@ -34,28 +34,26 @@ public final class BowStatusCommand {
                     Map<String, DynamicProjectileRegistry.ProjectileTypeData> types = registry.getRegisteredTypesSnapshot();
 
                     if (types.isEmpty()) {
-                        source.sendFeedback(Text.literal("[BowStatus] No projectile types registered yet."));
+                        source.sendFeedback(Text.translatable("playerhighlight.bowstatus.no_types"));
                         return 1;
                     }
 
                     List<Map.Entry<String, DynamicProjectileRegistry.ProjectileTypeData>> entries = new ArrayList<>(types.entrySet());
                     entries.sort(Comparator.comparing(Map.Entry::getKey));
 
-                    source.sendFeedback(Text.literal("[BowStatus] Registered types: " + entries.size()));
+                    source.sendFeedback(Text.translatable("playerhighlight.bowstatus.registered_types", String.valueOf(entries.size())));
                     for (Map.Entry<String, DynamicProjectileRegistry.ProjectileTypeData> entry : entries) {
                         String typeId = entry.getKey();
                         DynamicProjectileRegistry.ProjectileTypeData data = entry.getValue();
 
-                        String displayName = BowEnchantmentDetector.getDisplayName(typeId);
-                        String line = String.format(
-                            "%s | samples=%d avgRMSE=%.2f | G=%.4f D=%.4f",
-                            displayName,
-                            data.getSampleCount(),
-                            data.getAvgError(),
-                            data.getGravity(),
-                            data.getDrag()
+                        Text line = Text.translatable("playerhighlight.bowstatus.type_line",
+                                BowEnchantmentDetector.getDisplayName(typeId),
+                                String.valueOf(data.getSampleCount()),
+                                String.format("%.2f", data.getAvgError()),
+                                String.format("%.4f", data.getGravity()),
+                                String.format("%.4f", data.getDrag())
                         );
-                        source.sendFeedback(Text.literal(line));
+                        source.sendFeedback(line);
                     }
 
                     return 1;
@@ -65,7 +63,7 @@ public final class BowStatusCommand {
 
     private static void resetType(FabricClientCommandSource source, String type) {
         if (type == null || type.isBlank()) {
-            source.sendFeedback(Text.literal("[BowStatus] Usage: /bowstatus reset <arrow|trident|fireball|all>"));
+            source.sendFeedback(Text.translatable("playerhighlight.bowstatus.usage"));
             return;
         }
 
@@ -89,8 +87,8 @@ public final class BowStatusCommand {
                 }
             }
             default -> {
-                source.sendFeedback(Text.literal("[BowStatus] Unknown type: " + type));
-                source.sendFeedback(Text.literal("[BowStatus] Usage: /bowstatus reset <arrow|trident|fireball|all>"));
+                source.sendFeedback(Text.translatable("playerhighlight.bowstatus.unknown_type", type));
+                source.sendFeedback(Text.translatable("playerhighlight.bowstatus.usage"));
                 return;
             }
         }
@@ -100,6 +98,6 @@ public final class BowStatusCommand {
         }
 
         DynamicProjectileRegistry.getInstance().flushNow();
-        source.sendFeedback(Text.literal("[BowStatus] Reset learning for: " + String.join(", ", ids)));
+        source.sendFeedback(Text.translatable("playerhighlight.bowstatus.reset_done", String.join(", ", ids)));
     }
 }

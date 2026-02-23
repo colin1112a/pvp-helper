@@ -32,7 +32,7 @@ public class ConfigScreen extends Screen {
     private SliderWidget nearbyWarningRangeSlider;
 
     public ConfigScreen(Screen parent) {
-        super(Text.literal("Player Highlight Settings"));
+        super(Text.translatable("playerhighlight.config.title"));
         this.parent = parent;
         this.config = ModConfig.getInstance();
     }
@@ -147,50 +147,46 @@ public class ConfigScreen extends Screen {
         // 返回按钮
         y += ROW_SPACING + 10;
         this.addDrawableChild(ButtonWidget.builder(
-                        Text.literal("Done"),
+                        Text.translatable("playerhighlight.config.done"),
                         button -> this.close())
                 .dimensions(x, y, BUTTON_WIDTH, BUTTON_HEIGHT)
                 .build());
     }
 
+    private Text getToggleText(String key, boolean enabled) {
+        return Text.translatable(key, Text.translatable(enabled ? "playerhighlight.config.on" : "playerhighlight.config.off"));
+    }
+
     private Text getPlayerHighlightText() {
-        boolean enabled = config.isPlayerHighlightEnabled();
-        return Text.literal("Player Highlight: " + (enabled ? "§aON" : "§cOFF"));
+        return getToggleText("playerhighlight.config.player_highlight", config.isPlayerHighlightEnabled());
     }
 
     private Text getProjectilePredictionText() {
-        boolean enabled = config.isProjectilePredictionEnabled();
-        return Text.literal("Projectile Prediction: " + (enabled ? "§aON" : "§cOFF"));
+        return getToggleText("playerhighlight.config.projectile_prediction", config.isProjectilePredictionEnabled());
     }
 
     private Text getTrajectoryLineText() {
-        boolean enabled = config.isTrajectoryLineEnabled();
-        return Text.literal("Trajectory Line: " + (enabled ? "§aON" : "§cOFF"));
+        return getToggleText("playerhighlight.config.trajectory_line", config.isTrajectoryLineEnabled());
     }
 
     private Text getBowPreviewText() {
-        boolean enabled = config.isBowPreviewEnabled();
-        return Text.literal("Bow Preview: " + (enabled ? "§aON" : "§cOFF"));
+        return getToggleText("playerhighlight.config.bow_preview", config.isBowPreviewEnabled());
     }
 
     private Text getBowPreviewTrajectoryText() {
-        boolean enabled = config.isBowPreviewTrajectoryEnabled();
-        return Text.literal("Bow Preview Line: " + (enabled ? "§aON" : "§cOFF"));
+        return getToggleText("playerhighlight.config.bow_preview_line", config.isBowPreviewTrajectoryEnabled());
     }
 
     private Text getBowPreviewLandingMarkerText() {
-        boolean enabled = config.isBowPreviewLandingMarkerEnabled();
-        return Text.literal("Bow Preview Marker: " + (enabled ? "§aON" : "§cOFF"));
+        return getToggleText("playerhighlight.config.bow_preview_marker", config.isBowPreviewLandingMarkerEnabled());
     }
 
     private Text getBowPreviewInaccuracyText() {
-        boolean enabled = config.isBowPreviewSimulateInaccuracy();
-        return Text.literal("Bow Preview Inaccuracy: " + (enabled ? "§aON" : "§cOFF"));
+        return getToggleText("playerhighlight.config.bow_preview_inaccuracy", config.isBowPreviewSimulateInaccuracy());
     }
 
     private Text getSimulateFluidDragText() {
-        boolean enabled = config.isSimulateFluidDrag();
-        return Text.literal("Fluid Drag Simulation: " + (enabled ? "§aON" : "§cOFF"));
+        return getToggleText("playerhighlight.config.fluid_drag", config.isSimulateFluidDrag());
     }
 
     private class NearbyWarningRangeSlider extends SliderWidget {
@@ -201,7 +197,7 @@ public class ConfigScreen extends Screen {
 
         @Override
         protected void updateMessage() {
-            this.setMessage(Text.literal("Warning Range: " + (int) getRange()));
+            this.setMessage(Text.translatable("playerhighlight.config.warning_range", String.valueOf((int) getRange())));
         }
 
         @Override
@@ -227,7 +223,7 @@ public class ConfigScreen extends Screen {
 
         int startY = this.height / 4;
         context.drawCenteredTextWithShadow(this.textRenderer,
-                Text.literal("Hold TAB to highlight. Configure options below."),
+                Text.translatable("playerhighlight.config.hint"),
                 this.width / 2, startY - 30, 0xAAAAAA);
 
         super.render(context, mouseX, mouseY, delta);

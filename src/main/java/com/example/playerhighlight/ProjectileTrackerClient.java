@@ -55,6 +55,10 @@ public class ProjectileTrackerClient {
         final ArrayDeque<ArrowShotEntry> entries = new ArrayDeque<>();
     }
 
+    // NEARBY 警报冷却：同一射手 3 秒内只发一条 NEARBY 聊天警告
+    private static final long NEARBY_ALERT_COOLDOWN_MS = 3000;
+    private static final Map<String, Long> nearbyAlertCooldowns = new ConcurrentHashMap<>();
+
     // 射手推断：记录每个玩家上次看到的位置和视线方向
     private static final Map<UUID, PlayerSnapshot> lastPlayerSnapshots = new ConcurrentHashMap<>();
 
@@ -237,28 +241,43 @@ public class ProjectileTrackerClient {
     }
 
     /**
-     * 发送警报消息到聊天框
+     * 发送警报消息
+     *
+     * 非危险弹道（非 NEARBY）：使用 actionbar 显示，自动覆盖上一条，不占聊天栏。
+     * 危险弹道（NEARBY WARNING）：保留聊天栏显示，但同一射手 3 秒内只发一条。
      */
     private static void sendAlertMessage(MinecraftClient client, TrackedProjectile tracked) {
-        String projectileType = tracked.getType();
+        String projectileTypeKey = tracked.getType();
         String shooterName = tracked.getShooterName();
         Vec3d landing = tracked.getPrediction().landingPos;
         double alertRange = ModConfig.getInstance().getNearbyWarningRange();
         boolean isNear = landing.distanceTo(client.player.getPos()) <= alertRange;
 
-        // 构建彩色文本消息
-        // [Projectile Alert] 类型 from 玩家名(蓝色) | Landing: 坐标(绿色) [NEARBY WARNING](红色)
-        Text message = Text.literal("[Projectile Alert] ")
-                .append(Text.literal(projectileType + " from "))
-                .append(Text.literal(shooterName).styled(style -> style.withColor(0x5555FF))) // 蓝色
-                .append(Text.literal(" | Landing: "))
-                .append(Text.literal(String.format("(%.1f, %.1f, %.1f)", landing.x, landing.y, landing.z))
-                        .styled(style -> style.withColor(0x55FF55))); // 绿色
+        String coordStr = String.format("(%.1f, %.1f, %.1f)", landing.x, landing.y, landing.z);
 
-        if (isNear) {
-            message = ((net.minecraft.text.MutableText) message)
-                    .append(Text.literal(" [NEARBY WARNING]").styled(style -> style.withColor(0xFF5555))); // 红色
+        if (!isNear) {
+            // 非危险弹道：actionbar 显示（自动覆盖上一条）
+            Text actionbarMsg = Text.translatable("playerhighlight.alert.actionbar",
+                    Text.translatable(projectileTypeKey), shooterName, coordStr);
+            client.player.sendMessage(actionbarMsg, true);
+            return;
         }
+
+        // 危险弹道（NEARBY）：聊天栏显示，同一射手 3 秒冷却
+        long now = System.currentTimeMillis();
+        Long lastTime = nearbyAlertCooldowns.get(shooterName);
+        if (lastTime != null && (now - lastTime) < NEARBY_ALERT_COOLDOWN_MS) {
+            return;
+        }
+        nearbyAlertCooldowns.put(shooterName, now);
+
+        Text message = Text.translatable("playerhighlight.alert.message",
+                Text.translatable(projectileTypeKey),
+                Text.literal(shooterName).styled(style -> style.withColor(0x5555FF)),
+                Text.literal(coordStr).styled(style -> style.withColor(0x55FF55)));
+        message = ((net.minecraft.text.MutableText) message)
+                .append(Text.translatable("playerhighlight.alert.nearby_warning")
+                        .styled(style -> style.withColor(0xFF5555)));
 
         client.player.sendMessage(message, false);
     }
@@ -527,15 +546,15 @@ public class ProjectileTrackerClient {
     }
 
     /**
-     * 获取弹道类型名称
+     * 获取弹道类型翻译键
      */
     private static String getProjectileName(Entity projectile) {
-        if (projectile instanceof ArrowEntity) return "Arrow";
-        if (projectile instanceof SpectralArrowEntity) return "Spectral Arrow";
-        if (projectile instanceof TridentEntity) return "Trident";
-        if (projectile instanceof SmallFireballEntity) return "Blaze Fireball";
-        if (projectile instanceof FireballEntity) return "Ghast Fireball";
-        return "Unknown Projectile";
+        if (projectile instanceof ArrowEntity) return "playerhighlight.projectile.arrow";
+        if (projectile instanceof SpectralArrowEntity) return "playerhighlight.projectile.spectral_arrow";
+        if (projectile instanceof TridentEntity) return "playerhighlight.projectile.trident";
+        if (projectile instanceof SmallFireballEntity) return "playerhighlight.projectile.blaze_fireball";
+        if (projectile instanceof FireballEntity) return "playerhighlight.projectile.ghast_fireball";
+        return "playerhighlight.projectile.unknown";
     }
 
     /**

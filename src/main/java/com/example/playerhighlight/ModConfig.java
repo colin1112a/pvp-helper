@@ -218,18 +218,6 @@ public class ModConfig {
         }
     }
 
-    private static int parseInt(Properties props, String key, int defaultValue) {
-        String value = props.getProperty(key);
-        if (value == null) {
-            return defaultValue;
-        }
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            return defaultValue;
-        }
-    }
-
     private static boolean didChange(Properties props, String key, double nowValue) {
         String raw = props.getProperty(key);
         if (raw == null) {
